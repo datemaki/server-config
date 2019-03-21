@@ -1,0 +1,38 @@
+$provisioner_script = <<-SCRIPT
+
+  ip address add 192.168.254.13/23 dev eth0;
+  route add default gw 192.168.254.1;
+
+  echo '# This file has been overwritten by Vagrant Shell Provisioner' > /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo BOOTPROTO=none >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo DEVICE=eth0 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo NM_CONTROLLED=no >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo ONBOOT=yes >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo IPADDR=192.168.254.13 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo NETMASK=255.255.254.0 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo GATEWAY=192.168.254.1 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo DNS1=220.152.38.201 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+  echo DNS2=220.152.38.233 >> /etc/sysconfig/network-scripts/ifcfg-eth0;
+
+  sed -i 's/^nameserver .*$/nameserver 220.152.38.201\nnameserver 220.152.38.233/' /etc/resolv.conf
+
+  sed -i 's/^PasswordAuthentication .*$/PasswordAuthentication yes/' /etc/ssh/sshd_config;
+  systemctl reload sshd;
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "Yojimbo108/AmazonLinux2"
+ 
+  config.vm.provider "hyperv" do |v|
+    v.memory = 1024
+    v.cpus = 1
+  end
+
+  config.vm.define :"stdsv3" do |c1|
+    c1.vm.hostname = "stdsv3"
+  end
+
+  config.vm.provision "shell", inline: $provisioner_script
+end
+
